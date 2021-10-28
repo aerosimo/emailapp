@@ -2,9 +2,9 @@
  * This piece of work is to enhance EmailApp project functionality.           *
  *                                                                            *
  * Author:    eomisore                                                        *
- * File:      MailCon.java                                                    *
- * Created:   28/10/2021, 15:35                                               *
- * Modified:  28/10/2021, 15:35                                               *
+ * File:      ReceiveEmail.java                                               *
+ * Created:   28/10/2021, 17:24                                               *
+ * Modified:  28/10/2021, 17:25                                               *
  *                                                                            *
  * Copyright (c)  2021.  Aerosimo Ltd                                         *
  *                                                                            *
@@ -29,74 +29,77 @@
  *                                                                            *
  ******************************************************************************/
 
-import jakarta.mail.Authenticator;
-import jakarta.mail.PasswordAuthentication;
-import jakarta.mail.Session;
+import com.sun.mail.pop3.POP3Store;
+import jakarta.mail.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Properties;
 import java.util.Scanner;
 
-public class MailCon {
+public class ReceiveEmail {
 
-    public static Session getSession() {
-
+    public static String checkMail() {
+        String response;
+        response = "Success";
+        Message[] messages;
         String emailHost;
         emailHost = null;
-        String emailPort;
-        emailPort = null;
-        String emailSSL;
-        emailSSL = null;
+        String emailStore;
+        emailStore = null;
+        String emailUname;
+        emailUname = null;
+        String emailPword;
+        emailPword = null;
         Session sess;
-        sess = null;
-        String usr;
-        usr = null;
-        String pword;
-        pword = null;
-
+        POP3Store estore;
+        estore = null;
+        Folder dir;
+        dir = null;
         try {
             File myFile;
-            myFile = new File("/opt/secret/smtp.txt");
-            Scanner myReader = new Scanner(myFile);
+            myFile = new File("/opt/secret/pop3.txt");
+            Scanner myReader;
+            myReader = new Scanner(myFile);
             while (myReader.hasNextLine()) {
-                usr = myReader.nextLine();
-                pword = myReader.nextLine();
+                emailUname = myReader.nextLine();
+                emailPword = myReader.nextLine();
                 emailHost = myReader.nextLine();
-                emailPort = myReader.nextLine();
-                emailSSL = myReader.nextLine();
+                emailStore = myReader.nextLine();
             }
             myReader.close();
             Log.info("Successful reading email credentials");
         } catch (Exception e) {
             Log.error("Error reading email credentials: " + e);
         }
-
-        final String emailUserName;
-        emailUserName = usr;
-        final String emailPassword;
-        emailPassword = pword;
-        Properties prop;
-        prop = new Properties();
-        prop.put("mail.smtp.host", emailHost);
-        prop.put("mail.smtp.port", emailPort);
-        prop.put("mail.smtp.auth", "true");
-        prop.put("mail.smtp.socketFactory.port", emailPort);
-        prop.put("mail.smtp.socketFactory.class", emailSSL);
-        prop.put("mail.smtp.ssl.trust", emailHost);
-        prop.put("mail.smtp.starttls.enable", "true");
-
         try {
-            Authenticator auth;
-            auth = new Authenticator() {
-                public PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(emailUserName, emailPassword);
-                }
-            };
-            sess = Session.getInstance(prop, auth);
-        } catch (Exception e) {
-            Log.error("Email Connection Error : " + e);
+            Properties prop;
+            prop = new Properties();
+            prop.put("mail.pop3.host",emailHost);
+            sess = Session.getDefaultInstance(prop);
+            estore = (POP3Store) sess.getStore(emailStore);
+            estore.connect(emailUname,emailPword);
+            dir = estore.getFolder("INBOX");
+            dir.open(Folder.READ_ONLY);
+            messages = dir.getMessages();
+            for (int i = 0; i < messages.length; i++) {
+                Message message = messages[i];
+                Log.info("==============================");
+                Log.info("Email #" + (i + 1));
+                Log.info("Subject: " + message.getSubject());
+                Log.info("From: " + message.getFrom()[0]);
+                Log.info("Time: " + message.getSentDate().getTime());
+                Log.info("Body: " + message.getContent().toString());
+            }
+            dir.close(false);
+            estore.close();
+        } catch (NoSuchProviderException err) {
+            Log.error("Error with the POP3 Store settings: " + err);
+        } catch (MessagingException err) {
+            Log.error("Error with the email and password credentials: " + err);
+        } catch (IOException err) {
+            Log.error("Error receiving email: " + err);
         }
-        Log.info("Email session is established successfully");
-        return sess;
+        return response;
     }
 }

@@ -2,9 +2,9 @@
  * This piece of work is to enhance EmailApp project functionality.           *
  *                                                                            *
  * Author:    eomisore                                                        *
- * File:      SendEmailTest.java                                              *
- * Created:   28/10/2021, 15:39                                               *
- * Modified:  28/10/2021, 15:39                                               *
+ * File:      ReceiveEmailTest.java                                           *
+ * Created:   28/10/2021, 19:28                                               *
+ * Modified:  28/10/2021, 19:28                                               *
  *                                                                            *
  * Copyright (c)  2021.  Aerosimo Ltd                                         *
  *                                                                            *
@@ -29,34 +29,30 @@
  *                                                                            *
  ******************************************************************************/
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
-class SendEmailTest {
+class ReceiveEmailTest {
 
     @BeforeEach
     void setUp() {
-        Log.info("Starting Send Email Test");
+        Log.info("Starting Receive Email Test");
     }
 
     @AfterEach
     void tearDown() {
-        Log.info("Send Email Test complete");
+        Log.info("Receive Email Test complete");
     }
 
     @Test
-    @DisplayName("Unit Testing SendEmail")
-    void sendMail() {
+    @DisplayName("Unit Testing ReceiveEmail")
+    void checkMail() {
         String actual;
         String expected;
-        actual = SendEmail.sendMail("support@aerosimo.com", "Test Email", "This is a test email. With thousands of potential renderings, spam filters on high alert, and the constant risk of broken links, email testing is not a nice-to-have but it is a need-to-have.","");
+        actual = ReceiveEmail.checkMail();
         assertNotNull(actual, "Checking that the email response is not null");
-        expected = "Email Sent Successfully";
+        expected = "Success";
         Assertions.assertEquals(expected, actual, "This should match a the success message from the mail api");
     }
 }
